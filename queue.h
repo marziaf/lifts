@@ -10,25 +10,29 @@ typedef struct person{
 	struct person *next;
 } person_t;
 
-/** Returns an empty list with a dummy head=tail
- * @return : head
+/** Allows to identify a list by its head and tail
  * */
-person_t *init_queue();
+typedef struct list_identifier{
+	person_t *head;
+	person_t *tail;
+} list_identifier_t;
+
+
+/** Returns an empty list with a dummy head=tail
+ * @return : list_identifier
+ * */
+list_identifier_t *init_queue();
 
 /** Adds a person in queue
- * @param queue_tail: last element of queue
+ * @param list_id: identifier of list
  * @param dest: destination floor of customer
- * @return : new tail
  * */
-person_t *enqueue(person_t *queue_tail, int dest);
+void enqueue(list_identifier_t *list_id, int dest);
 
 /** Removes a customer from the queue
- * @param queue_head: first element of the queue
- * @return : the customer removed
+ * @param list_id: identifier of list
+ * @return : the person deleted, or NULL if queue was empty
  * */
-person_t *dequeue(person_t *queue_head);
-
-
-
+person_t *dequeue(list_identifier_t *list_id);
 
 #endif //QUEUE_H
