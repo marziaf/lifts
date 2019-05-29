@@ -15,13 +15,10 @@ person_t *new_person(int destination) { //TODO limit visibility
 }
 
 
-list_identifier_t *init_queue() {
-	// Allocate space for identifier
-	list_identifier_t *list_id = (list_identifier_t *) malloc(sizeof(list_identifier_t)); //TODO free
+list_identifier_t init_queue() {
 	// Head = tail at beginning
-	list_id->head = new_person(-1);
-	list_id->tail = list_id->head;
-	return list_id;
+	person_t *head = new_person(-1);
+	return (list_identifier_t) {head, head};
 }
 
 

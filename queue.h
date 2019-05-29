@@ -21,7 +21,7 @@ typedef struct list_identifier{
 /** Returns an empty list with a dummy head=tail
  * @return : list_identifier
  * */
-list_identifier_t *init_queue();
+list_identifier_t init_queue();
 
 /** Adds a person in queue
  * @param list_id: identifier of list
