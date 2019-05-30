@@ -19,5 +19,6 @@ typedef struct elevator {
 
 } elevator_t;
 
+//TODO is empty, next floor(?)
 
 #endif //ELEVATOR_H

@@ -35,4 +35,9 @@ void enqueue(list_identifier_t *list_id, int dest);
  * */
 person_t *dequeue(list_identifier_t *list_id);
 
+/** @ param id : the list identifier
+ * @ return : 1 if empty, 0 otherwise
+ * */
+int is_empty(list_identifier_t *id);
+
 #endif //QUEUE_H

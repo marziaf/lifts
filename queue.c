@@ -40,3 +40,8 @@ person_t *dequeue(list_identifier_t *list_id) { //TODO check if head=tail
 	// Return removed element
 	return old; //TODO poi fare free
 }
+
+
+int is_empty(list_identifier_t *id) {
+	return id->head == id->tail ? 1 : 0;
+}
