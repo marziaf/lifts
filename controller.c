@@ -55,7 +55,7 @@ int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor) { //TOD
 
 
 // Check if it would be better to change inertia
-void evalutate_inertia_change(status_t *status, int lift) {
+void evalutate_inertia_change(status_t *status, int lift) { //TODO this should ensure not to go -1 or 20, check
 	elevator_t *elev = &status->elevators[lift];
 	// Current inertia
 	int inertia = elev->inertia;
@@ -96,23 +96,12 @@ void evalutate_inertia_change(status_t *status, int lift) {
 }
 
 
-// Set a target destination for the lift. It won't necessary get there, but it's its target
-void set_destination(status_t *status, int lift) {
-	char inertia = status->elevators[lift].inertia;
-	int current_floor = status->elevators[lift].current_floor;
-	evalutate_inertia_change(status, lift);
-	//TODO
+// Move elevator of one floor, according to inertia
+void move_elevators(status_t *status, int lift) {
+	elevator_t *elevator = &status->elevators[lift];
+	if(elevator->inertia=='u') elevator->current_floor++;
+	else if(elevator->inertia=='d') elevator->current_floor--;
 }
-/*
-// Move elevator of one floor
-void move_elevators(status_t status, int i) {
-	char inertia = status.elevators[i].inertia;
-	int current_floor = status.elevators[i].current_floor;
-	// If it is empty, check if someone called
-	if() //TODO
-// Potrebbe servire controllare se tutti vogliono invertire la marcia
-}
-*/
 
 
 
@@ -126,7 +115,7 @@ void time_step(status_t *status) {
 	// For each elevator
 	for(int i=0; i<NUM_ELEVATORS; i++) {
 		// Decide which elevator goes where
-		set_destination(status, i);
+		evalutate_inertia_change(status, i);
 		move_elevator(i);
 	}
 	//move_elevators(status);
