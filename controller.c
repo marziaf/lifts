@@ -5,111 +5,6 @@
 
 #define INIT_ELEVATOR_STATUS {{0}, 's', 0, EL_CAPACITY}
 
-void update_queuing_floors(status_t *status){
-	for(int i=0; i<FLOORS; i++) {
-		// Check if there's no queue
-		if( !is_empty( &(status->floors_queues[i])) ) {
-			// If there's queue, was someone going there?
-			// If true, ignore, if false, set as 'to be visited'
-			if (!status->queuing_floors[i]) status->queuing_floors[i] = 1;
-		}
-	}
-}
-
-// Search for the nearest call
-void look_for_someone(status_t *status, int num_elevator) {
-	int this_floor = status->elevators[num_elevator].current_floor;
-	// Look which is the nearest non empty, but to be served floor
-	int i,j; i=this_floor-1; j=this_floor+1;
-	int found_i = 0; int found_j = 0; //TODO CODE REPETITION. see serve customers
-	while(i>=0 && j<=FLOORS && !found_i && !found_j) {
-		if( status->queuing_floors[i] ) found_i=1;
-		if( status->queuing_floors[j] ) found_j=1;
-		--i; ++j;
-	}
-	// If found someone upstairs, go up
-	if(found_i) {
-		status->elevators[num_elevator].inertia = 'u';
-		// Signal that you plan to go there
-		status->queuing_floors[++i] = 0;
-	}
-	// If someone was found down, go down
-	else if(found_j) {
-		status->elevators[num_elevator].inertia = 'd';
-		// Signal that you plan to go there
-		status->queuing_floors[--j] = 0;
-	}
-	// If nobody was found, stay still
-}
-
-// Serve customers inside the elevator
-void serve_current_customers(status_t *status, int num_elevator) {
-	// Which is the nearest destination?
-	int this_floor = status->elevators[num_elevator].current_floor;
-	int i,j; i=this_floor-1; j=this_floor+1;
-	int found_i = 0; int found_j = 0;
-	while(i>=0 && j<=FLOORS && !found_i && !found_j) {
-		if( status->elevators[num_elevator].people_destinations[i] ) found_i=1;
-		if( status->elevators[num_elevator].people_destinations[j] ) found_j=1;
-		--i; ++j;
-	}
-	//If the nearest place to go is down, go there
-	if(found_i) {
-		status->elevators->inertia='d';
-		status->queuing_floors[++i] = 0;
-	} else { // else up
-		status->elevators->inertia='u';
-		status->queuing_floors[--j] = 0;
-	}
-}
-
-void move_up(status_t *status, int num_elevator) {
-	// Does it really makes sense to go up? Or someone stole my customers?
-	int is_there_anybody = 0;
-	for(int i=status->elevators[num_elevator].current_floor; i<FLOORS; i++)
-		if(!status->queuing_floors[i]) is_there_anybody = 1;
-	// If there's anybody upstairs, try to serve customers
-	if(!is_there_anybody && status->elevators[num_elevator].empty_space != EL_CAPACITY) {
-		serve_current_customers(status, status->elevators[num_elevator].current_floor);
-	}
-}
-
-void move_down(status_t *status, int num_elevator) {
-	// Does it really makes sense to go down? Or someone stole my customers?
-	int is_there_anybody = 0;
-	for(int i=status->elevators[num_elevator].current_floor; i>=0; i--)
-		if(!status->queuing_floors[i]) is_there_anybody = 1;
-	// If there's anybody upstairs, try to serve customers
-	if(!is_there_anybody && status->elevators[num_elevator].empty_space != EL_CAPACITY) {
-		serve_current_customers(status, status->elevators[num_elevator].current_floor);
-	}
-}
-
-// Moves the elevators
-void move_elevators(status_t *status) {
-	// TODO check if need to change inertia -> empty, 0, 20
-	for(int i=0; i<NUM_ELEVATORS; i++) {
-		char intertia = status->elevators[i].inertia;
-		switch(intertia) {
-			// If was going up, continue going up
-			case 'u':
-				move_up(status, i);
-				//status->elevators[i].current_floor++;
-				break;
-			// Continue going down
-			case 'd':
-				status->elevators[i].current_floor--; //TODO there's more to do
-				break;
-			// Is there some job to be done?
-			case 's':
-				look_for_someone(&status, i);
-		}
-	}
-}
-
-void people_get_out(status_t *status) { //TODO deve anche aggiornare queuing floors
-	//TODO
-}
 
 
 status_t init_status() {
@@ -121,10 +16,73 @@ status_t init_status() {
 	// Initialize queues
 	for(int i=0; i<FLOORS; i++)
 		status.floors_queues[i] = init_queue();
-	status.queuing_floors = {0};
+	status.to_serve_floors = {0}; //TODO
 	
 	return status;
 }
+
+// Check were people are queuing
+void check_calls(status_t *status) {
+	// Check in which floor there are people
+	for(int i=0; i<FLOORS; i++) {
+		if( !is_empty( &(status->floors_queues[i]) ) )
+			status->to_serve_floors[i] = 1; // If there is someone, mark as to be visited
+	}
+}
+
+
+// Get the nearest busy floor to serve
+int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor) {
+	int found_at_d = -1;
+	int found_at_u = -1;
+	// Search the nearest floor whith people queuing
+	// ... looking the nearest down
+	for(int i=this_floor-1; (i>=0 && found_at_d!=-1); --i)
+		if(floors_to_be_served[i]) found_at_d = i;
+	// ... and up
+	for(int i=this_floor+1; (i<FLOORS && found_at_u!=-1); ++i)
+		if(floors_to_be_served[i]) found_at_u = i;
+	
+	// If there were no busy floors, say there's nobody
+	if(found_at_u==-1 && found_at_d==-1) return -1;
+	// If there's nobody upstairs, say the first one up
+	if(found_at_u==-1) return found_at_d;
+	// If there's nobody down, vice versa
+	if(found_at_d==-1) return found_at_u;
+	// If there's people up and down, return the nearest
+	return (found_at_u-this_floor < this_floor-found_at_d) ? found_at_u : found_at_d;
+}
+
+
+// Check if it would be better to change inertia
+void evalutate_inertia_change(status_t *status, int lift) {
+	// If there are not passengers, go to serve people in queue
+	int nearest_to_serve_floor = -1;
+	if( status.elevators[lift].empty_space == 0) {
+		nearest_to_serve_floor = get_nearest_to_serve_floor(&(status_t->nearest_to_serve_floor), status->elevators[lift].current_floor);
+	}
+	// Give priority to passengers
+	
+}
+
+// Set a target destination for the lift. It won't necessary get there, but it's its target
+void set_destination(status_t *status, int lift) {
+	char inertia = status->elevators[lift].inertia;
+	int current_floor = status->elevators[lift].current_floor;
+	evalutate_inertia_change(status, lift);
+	//TODO
+}
+/*
+// Move elevator of one floor
+void move_elevators(status_t status, int i) {
+	char inertia = status.elevators[i].inertia;
+	int current_floor = status.elevators[i].current_floor;
+	// If it is empty, check if someone called
+	if() //TODO
+// Potrebbe servire controllare se tutti vogliono invertire la marcia
+}
+*/
+
 
 
 void add_customer(status_t *status, int from, int to) {
@@ -132,10 +90,18 @@ void add_customer(status_t *status, int from, int to) {
 }
 
 void time_step(status_t *status) {
-	update_queuing_floors(status);
-	move_elevators(status);
-	people_get_out(status);
+	// Check who's arrived
+	check_calls(status);
+	// For each elevator
+	for(int i=0; i<NUM_ELEVATORS; i++) {
+		// Decide which elevator goes where
+		set_destination(status, i);
+		move_elevator(i);
+	}
+	//move_elevators(status);
+	//people_get_out(status);
 	// get on
 	// if nobody's there, go where called
+	//update_queuing_floors(status);
 }
 

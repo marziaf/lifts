@@ -14,8 +14,10 @@ typedef struct elevator {
 	char inertia;
 	// The floor in which elevator is
 	int current_floor;
-	// Information about how many people can get in
+	// Information about how many people can get in (capacity - number of people inside)
 	int empty_space;
+	// The next floor were I can take passengers
+	int next_serving_floor;
 
 } elevator_t;
 

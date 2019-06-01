@@ -9,7 +9,7 @@ typedef struct status {
 	// Each index represents a floor, and is a pointer to a queue
 	list_identifier_t floors_queues[FLOORS];
 	// Floors which need to be served
-	int queuing_floors[FLOORS];
+	int to_serve_floors[FLOORS];
 	// NUM_ELEVATORS elevators
 	elevator_t elevators[NUM_ELEVATORS];
 } status_t;
