@@ -92,18 +92,23 @@ void evalutate_inertia_change(status_t *status, int lift) { //TODO this should e
 				someone_goes_down=1;
 		if(!someone_goes_down) elev->inertia = 'u';
 	}
-	
 }
 
 
 // Move elevator of one floor, according to inertia
-void move_elevators(status_t *status, int lift) {
+void move_elevator(status_t *status, int lift) {
 	elevator_t *elevator = &status->elevators[lift];
 	if(elevator->inertia=='u') elevator->current_floor++;
 	else if(elevator->inertia=='d') elevator->current_floor--;
 }
 
 
+// People who need to get down to current floor, get down
+void people_get_out(status_t *status, int lift) {
+	elevator_t *elevator = &status->elevators[lift];
+	elevator->people_destinations[elevator->current_floor] = 0;
+
+}
 
 void add_customer(status_t *status, int from, int to) {
 	enqueue(&status->floors_queues[from], to);
@@ -116,9 +121,13 @@ void time_step(status_t *status) {
 	for(int i=0; i<NUM_ELEVATORS; i++) {
 		// Decide which elevator goes where
 		evalutate_inertia_change(status, i);
-		move_elevator(i);
+		// Move elevator of one floor (if necessary)
+		move_elevator(status, i);
+		// People who need to exit, get out
+		people_get_out(status, i);
+		// People get into the elevator
+		people_get_in(status, i); //TODO
 	}
-	//move_elevators(status);
 	//people_get_out(status);
 	// get on
 	// if nobody's there, go where called
