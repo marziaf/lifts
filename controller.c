@@ -32,7 +32,7 @@ void check_calls(status_t *status) {
 
 
 // Get the nearest busy floor to serve
-int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor) {
+int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor) { //TODO così più ascensori vanno nella stessa direzione
 	int found_at_d = -1;
 	int found_at_u = -1;
 	// Search the nearest floor whith people queuing
@@ -56,14 +56,45 @@ int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor) {
 
 // Check if it would be better to change inertia
 void evalutate_inertia_change(status_t *status, int lift) {
+	elevator_t *elev = &status->elevators[lift];
+	// Current inertia
+	int inertia = elev->inertia;
+	// Current floor
+	int floor = elev->current_floor;
+
 	// If there are not passengers, go to serve people in queue
 	int nearest_to_serve_floor = -1;
-	if( status.elevators[lift].empty_space == 0) {
-		nearest_to_serve_floor = get_nearest_to_serve_floor(&(status_t->nearest_to_serve_floor), status->elevators[lift].current_floor);
+	if( elev->empty_space == 0) {
+		nearest_to_serve_floor = get_nearest_to_serve_floor(status->to_serve_floors, elev->current_floor);
+		// If nobody's queuing, stay still
+		if(nearest_to_serve_floor==-1) elev->inertia = 's';
+		// Otherwise get there
+		elev->inertia = (nearest_to_serve_floor > floor) ? 'u' : 'd';
+		return;
 	}
-	// Give priority to passengers
+	
+	// If there's someone inside elevator
+	// Give priority to passengers: if nobody needs to go were the lift is going, invert direction
+	if(inertia == 'u') {
+		int someone_goes_up = 0;
+		// If nobody is going up, get down
+		for(int i=floor; i<FLOORS; i++)
+			if (elev->people_destinations[i]!=0)
+				someone_goes_up=1;
+		if(!someone_goes_up) elev->inertia = 'd';
+
+	}
+	// The same in opposite direction
+	if(inertia == 'd') {
+		int someone_goes_down=0;
+		for(int i=floor; i>=0; --i)
+			if (elev->people_destinations[i]!=0)
+				someone_goes_down=1;
+		if(!someone_goes_down) elev->inertia = 'u';
+	}
 	
 }
+
 
 // Set a target destination for the lift. It won't necessary get there, but it's its target
 void set_destination(status_t *status, int lift) {
