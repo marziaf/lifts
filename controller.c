@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "controller.h"
 #include "parameters.h"
 #include "queue.c"
@@ -32,9 +33,8 @@ void check_calls(status_t *status) {
 
 
 // Get the nearest busy floor to serve
-int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor) { //TODO così più ascensori vanno nella stessa direzione
-	//TODO poichè floors to be serve è aggiornato ogni volta, posso mettere a 0 la cella che vorrei andare a visitare e risolvere il fatto che tutti vogliano andare nello stesso posto
-	// Get the nearest floor to be served going up and down
+int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor) {
+	// Get the nearest floor to be served going up or down
 	int found_at_d = -1;
 	int found_at_u = -1;
 	// Search the nearest floor whith people queuing
@@ -47,22 +47,17 @@ int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor) { //TOD
 	
 	// If there were no busy floors, say there's nobody
 	if(found_at_u==-1 && found_at_d==-1) return -1;
-	// If there's nobody upstairs, say the first one up
-	if(found_at_u==-1) {
-		// Signal the intention to go to the floor, so to avoid all lift to go to the same floor
-		floors_to_be_served[found_at_d] = 0;
-		// return the nearest floor
-		return found_at_d;
-	}
-	// If there's nobody down, vice versa
-	if(found_at_d==-1) {
-		// Signal the intention to go to the floor
-		floors_to_be_served[found_at_u] = 0;
-		// return the nearest floor
-		return found_at_u;
-	}
-	// If there's people up and down, return the nearest
-	return (found_at_u-this_floor < this_floor-found_at_d) ? found_at_u : found_at_d;
+	int nearest = -1;
+	// If there's nobody upstairs, nearest is down
+	if(found_at_u==-1) nearest = found_at_d;
+	// If there's nobody down, nearest is up
+	if(found_at_d==-1) nearest = found_at_u;
+	// If there's people up and down, get nearest by comparison
+	nearest = (found_at_u-this_floor < this_floor-found_at_d) ? found_at_u : found_at_d;
+
+	// Signal intention to go to nearest floor, to avoid that multiple lifts are going there
+	floors_to_be_served[nearest] = 0;
+	return nearest;
 }
 
 
@@ -164,3 +159,12 @@ void time_step(status_t *status) {
 	}
 }
 
+
+void print_system_status(status_t *status) {
+	// Display number of people queuing at each floor and the lifts
+	/*
+	 * 19 {4} [12]
+	 * 18 {0}      [7]
+	 * ...
+	 */ //TODO deve mostrare anche dove va la gente
+}

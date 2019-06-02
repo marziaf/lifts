@@ -27,10 +27,10 @@ void add_customer(status_t *status, int from, int to);
 
 /** Make the elevators advance
  * */
-void time_step();
+void time_step(status_t *status);
 
 /** Displays current status
  * */
-void print_system_status();
+void print_system_status(status_t *status);
 
 #endif
