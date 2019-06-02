@@ -4,7 +4,7 @@
 #include "queue.c"
 
 #define INIT_ELEVATOR_STATUS {{0}, 's', 0, EL_CAPACITY}
-#define INIT_STATUS {{NULL}, {0}, {NULL}}
+#define INIT_STATUS {{}, {0}, {}} //TODO check if ok, otherwise use memset
 
 
 // Initialize the status of the system
@@ -34,6 +34,7 @@ void check_calls(status_t *status) {
 // Get the nearest busy floor to serve
 int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor) { //TODO così più ascensori vanno nella stessa direzione
 	//TODO poichè floors to be serve è aggiornato ogni volta, posso mettere a 0 la cella che vorrei andare a visitare e risolvere il fatto che tutti vogliano andare nello stesso posto
+	// Get the nearest floor to be served going up and down
 	int found_at_d = -1;
 	int found_at_u = -1;
 	// Search the nearest floor whith people queuing
@@ -47,9 +48,19 @@ int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor) { //TOD
 	// If there were no busy floors, say there's nobody
 	if(found_at_u==-1 && found_at_d==-1) return -1;
 	// If there's nobody upstairs, say the first one up
-	if(found_at_u==-1) return found_at_d;
+	if(found_at_u==-1) {
+		// Signal the intention to go to the floor, so to avoid all lift to go to the same floor
+		floors_to_be_served[found_at_d] = 0;
+		// return the nearest floor
+		return found_at_d;
+	}
 	// If there's nobody down, vice versa
-	if(found_at_d==-1) return found_at_u;
+	if(found_at_d==-1) {
+		// Signal the intention to go to the floor
+		floors_to_be_served[found_at_u] = 0;
+		// return the nearest floor
+		return found_at_u;
+	}
 	// If there's people up and down, return the nearest
 	return (found_at_u-this_floor < this_floor-found_at_d) ? found_at_u : found_at_d;
 }
