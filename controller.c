@@ -62,12 +62,16 @@ int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor) {
 
 
 // Check if it would be better to change inertia
-void evalutate_inertia_change(status_t *status, int lift) { //TODO this should ensure not to go -1 or 20, check if it is doing it
+void evalutate_inertia_change(status_t *status, int lift) {
 	elevator_t *elev = &status->elevators[lift];
 	// Current inertia
 	int inertia = elev->inertia;
 	// Current floor
 	int floor = elev->current_floor;
+
+	// Check if elevator reached top or bottom
+	if(floor == 0) elev->inertia = 'u';
+	else if(floor == FLOORS-1) elev->inertia = 'd';
 
 	// If there are not passengers, go to serve people in queue
 	int nearest_to_serve_floor = -1;

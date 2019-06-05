@@ -25,6 +25,8 @@ list_identifier_t init_queue() {
 void enqueue(list_identifier_t *list_id, int dest) { //TODO check id not null
 	// Append a person to the list by setting tail's next element
 	list_id->tail->next = new_person(dest);
+	// Set last element as tail
+	list_id->tail = list_id->tail->next;
 }
 
 
