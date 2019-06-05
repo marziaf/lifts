@@ -163,12 +163,59 @@ void time_step(status_t *status) {
 	}
 }
 
+/** Prints the first EL_CAPACITY elements' destinations and '...' if there are more
+ * The format of the string agrees with print_system_status funcion in controller:
+ * "... {12}_{_1}_{_4}_{10}_" -> if EL_CAPACITY=4 and there are more than 4 people queueing
+ * @param list_id
+ */
+void print_first_people(list_identifier_t *list_id) {
+	// Get the destinations of the first EL_CAPACITY customers
+	int dest[EL_CAPACITY] = {-1};  // This assegnation is not necessary, but it's
+	// cheap and makes printing easier
+	person_t *iter = list_id->head;
+	int i = 0;
+	while(iter->next && i<EL_CAPACITY) {
+		dest[i++] = iter->next->dest;
+		iter = iter->next;
+	}
+	
+	// If there were more than EL_CAPACITY people, print "..."
+	if(iter->next) printf("... ");
+	// Print people inserted in buffer dest
+	for(int j=0; j<i; j++) {
+		if(dest[j] == -1) printf("     "); // If there's nobody, leave blank space
+		printf("{%2d} ", dest[j]); // {xx}_
+	}
+}
+
+void print_queue(list_identifier_t *list_id) {
+	person_t *iterator = list_id->head;
+	while(iterator->next) {
+		printf("{%2d} ", iterator->next->dest);
+		iterator = iterator->next;
+	}
+}
+
+void print_elevators(elevator_t *elevators, int floor) {
+	for(int i=0; i<NUM_ELEVATORS; i++) {
+		if(elevators[i].current_floor == floor) // If elevator i is at this floor
+			printf("[%2d] ", elevators[i].num_people_inside);
+	}
+}
+
 
 void print_system_status(status_t *status) {
-	// Display number of people queuing at each floor and the lifts
-	/*
-	 * 19 {4} [12]
-	 * 18 {0}      [7]
-	 * ...
-	 */ //TODO deve mostrare anche dove va la gente
+	// Display people queuing at each floor and the lifts
+	int first_col_size = 6; //xx____
+	int elevator_space = NUM_ELEVATORS*5;// [xx]_
+	
+	// Titles of table
+	printf("%.*s|%.*s|%s\n", first_col_size, "FLOOR", elevator_space, "ELEVATORS", "QUEUE");
+	// Print a line for each floor
+	for(int f=FLOORS-1; f>=0; --f) {
+		printf("%.*d|",first_col_size, f); // Number of floor
+		print_elevators(status->elevators, f);
+		printf("|");
+		print_queue(&status->floors_queues[f]);
+	}
 }
