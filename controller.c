@@ -68,6 +68,7 @@ int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor) {
 	return nearest;
 }
 
+
 void try_serve_ppl_queueing(status_t *status, int lift) {
 	elevator_t *el = &status->elevators[lift];
 	// Get the nearest floor with people queueing
@@ -174,7 +175,7 @@ void time_step(status_t *status) { //TODO DEBUG decomment code
 		// Decide which elevator goes where
 		evaluate_inertia_change(status, i);
 		// Move elevator of one floor (if necessary)
-		//move_elevator(status, i);
+		move_elevator(status, i);
 		// People who need to exit, get out
 		//people_get_out(status, i);
 		// People get into the elevator
