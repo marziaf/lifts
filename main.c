@@ -25,10 +25,6 @@ int main() {
 				time_step(&status);
 				break;
 			case 'p':
-				//printf("queue at 19\n");
-				//print_queue(&status.floors_queues[19]);
-				//test(&status);
-				printf("-------------\n");
 				print_system_status(&status);
 				break;
 		}

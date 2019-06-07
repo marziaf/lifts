@@ -33,9 +33,4 @@ void time_step(status_t *status);
  * */
 void print_system_status(status_t *status);
 
-//TODO remove
-//DEBUG
-void test(status_t *status);
-void print_queue(list_identifier_t *id);
-
 #endif
