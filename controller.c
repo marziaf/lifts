@@ -188,10 +188,10 @@ void print_floors(status_t *status) {
 	int elevator_space = NUM_ELEVATORS*5;// [xx]_
 	
 	// Titles of table
-	printf("%.*s|%.*s|%s\n", first_col_size, "FLOOR", elevator_space, "ELEVATORS", "QUEUE");
+	printf("%.*s |%.*s |%s\n", first_col_size, "FLOOR", elevator_space, "ELEVATORS", "QUEUE");
 	// Print a line for each floor
 	for(int f=FLOORS-1; f>=0; --f) {
-		printf("%.*d|",first_col_size, f); // Number of floor
+		printf("%*d|",first_col_size, f); // Number of floor
 		print_elevators(status->elevators, f);
 		printf("| ");
 		print_queue(&status->floors_queues[f]);
@@ -201,18 +201,24 @@ void print_floors(status_t *status) {
 
 void print_inside_elevators(status_t *status) {
 	// Print also the destinations of people inside elevators
+	//LIFT->LIFT #0 |LIFT #1 
+	//FLOOR 
+	//19    1           -
+	//...
 	int padding = 8;
 	printf("LIFT->");
 	for(int i=0; i<NUM_ELEVATORS; ++i) {
-		printf("LIFT #%2d",i);
+		printf("LIFT #%-2d|",i);
 	}
-	printf("FLOOR ");
-	for(int f=0; f<FLOORS; ++f) {
+	printf("\nFLOOR \n");
+	for(int f=FLOORS-1; f>=0; --f) {
+		printf("%5d", f);
 		for(int e=0; e<NUM_ELEVATORS; ++e) {
 			int ppl_in_e_going_f = status->elevators[e].people_destinations[f];
 			if(ppl_in_e_going_f) printf("%-.*d", padding, ppl_in_e_going_f);
-			else printf("%.*s", padding, "    /    ");
+			else printf("%.*s", padding, "    -    ");
 		}
+		printf("\n");
 	}
 }
 
@@ -221,7 +227,8 @@ void print_system_status(status_t *status) {
 	printf("_____________________________\n");
 	printf("QUEUES STATUS\n\n");
 	print_floors(status);
-	printf("ELEVATORS STATUS\n\n");
+	printf("\n\n_____________________________\n");
+	printf("ELEVATORS' STATUS\n\n");
 	print_inside_elevators(status);
 }
 
@@ -232,5 +239,4 @@ void test(status_t *status) {
 	elevator_t el0 = status->elevators[0];
 	printf("ascensore 1 ha inerzia %c, current_floor %d, num_people_inside %d, e %d persone vanno al piano 19\n", el.inertia, el.current_floor, el.num_people_inside, el.people_destinations[19]);
 	printf("ascensore 0 ha inerzia %c, current_floor %d, num_people_inside %d, e %d persone vanno al piano 19\n", el0.inertia, el0.current_floor, el0.num_people_inside, el0.people_destinations[19]);
-	printf("Al piano 19 la prima persona in coda vuole andare al piano %d", status->floors_queues[19].head->next->dest);
 }
