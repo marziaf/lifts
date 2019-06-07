@@ -32,9 +32,11 @@ void enqueue(list_identifier_t *list_id, int dest) { //TODO check id not null
 
 person_t *dequeue(list_identifier_t *list_id) { //TODO check if head=tail
 	// Check if queue is empty
-	if(list_id->head == list_id->tail) return NULL;
+	if(is_empty(list_id)) return NULL;
 	// Save first non-dummy element
 	person_t *old = list_id->head->next;
+	// If it was the tail (so there was just one element), update tail
+	if(old == list_id->tail) list_id->tail = list_id->head;
 	// Remove link dummy head-element to dequeue
 	list_id->head->next = old->next;
 	// Remove link element to dequeue-new first element

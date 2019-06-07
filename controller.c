@@ -155,37 +155,43 @@ void people_get_out(status_t *status, int lift) {
 // Get the maximum number of customers
 void people_get_in(status_t *status, int lift) {
 	elevator_t *elev = &status->elevators[lift];
-	int remaining_capacity = EL_CAPACITY - elev->num_people_inside;
 	int this_floor = elev->current_floor;
+	// Calculate how many people can fit
+	int remaining_capacity = EL_CAPACITY - elev->num_people_inside;
 	// Get the queue in this floor
 	list_identifier_t *queue = &status->floors_queues[this_floor];
 	// Until there's space in elevator, and people in queue, let people get inside
+	int person_destination;
 	for(int i=0; i<remaining_capacity && !is_empty(queue); i++) {
 		// Insert person destination in elevator people tracker
-		int person_destination = dequeue(queue)->dest;
+		person_t *to_insert = dequeue(queue);  // Get person and it's destination
+		person_destination = to_insert->dest;
+		free(to_insert);
+		// Update elevator params
 		elev->people_destinations[person_destination]++;
 		elev->num_people_inside++;
 	}
 }
+
 
 void add_customer(status_t *status, int from, int to) {
 	enqueue(&status->floors_queues[from], to);
 }
 
 
-void time_step(status_t *status) { //TODO DEBUG decomment code
+void time_step(status_t *status) {
 	// Check who's arrived
 	check_calls(status);
 	// For each elevator
 	for(int i=0; i<NUM_ELEVATORS; i++) {
+		// People who need to exit, get out
+		people_get_out(status, i);
+		// People get into the elevator
+		people_get_in(status, i); //TODO
 		// Decide which elevator goes where
 		evaluate_inertia_change(status, i);
 		// Move elevator of one floor (if necessary)
 		move_elevator(status, i);
-		// People who need to exit, get out
-		//people_get_out(status, i);
-		// People get into the elevator
-		//people_get_in(status, i); //TODO
 	}
 }
 
