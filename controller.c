@@ -35,7 +35,7 @@ void check_calls(status_t *status) {
 
 
 // Get the nearest busy floor to serve
-int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor) {
+int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor, char inertia) {
 	// Get the nearest floor to be served going up or down
 	int found_at_d = -1;  // Nearest lower floor with people
 	int found_at_u = -1;  // And upper
@@ -56,11 +56,17 @@ int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor) {
 	if(found_at_u==-1) nearest = found_at_d;
 	// If there's nobody down, nearest is up
 	else if(found_at_d==-1) nearest = found_at_u;
-	// If there's people up and down, get nearest by comparison (in case of parity, go up:)
-	// (There's more probability that people are going from floor x to zero, so)
-	// (it's better to take people from above and then go down hoping to find more customers)
-	// (who are going down)
-	else nearest = (found_at_u-this_floor <= this_floor-found_at_d) ? found_at_u : found_at_d;
+	// If there's people up and down, go to nearest floor
+	else if(found_at_u-this_floor != this_floor-found_at_d)
+		nearest = (found_at_u-this_floor < this_floor-found_at_d) ? found_at_u : found_at_d;
+	// In case of parity, keep current inertia to avoid to get stuck
+	else {
+		if(inertia == 'd') nearest = found_at_d;
+		// Statistically, if the lift was stopped, is better to go up, as people usually go
+		// from floor x to 0, and not to y>x. In this way, after collecting people were needed,
+		// the lift will start going down and collecting more people who are going down too
+		else nearest = found_at_u;
+	}
 
 	printf("THIS FUCKING elevator at floor %d wants to go to %d\n", this_floor, nearest); //DEBUG
 	// Signal intention to go to nearest floor, to avoid that multiple lifts are going there
@@ -73,7 +79,7 @@ void try_serve_ppl_queueing(status_t *status, int lift) {
 	elevator_t *el = &status->elevators[lift];
 	// Get the nearest floor with people queueing
 	int nearest_to_serve_floor;
-	nearest_to_serve_floor = get_nearest_to_serve_floor(status->to_serve_floors, el->current_floor);
+	nearest_to_serve_floor = get_nearest_to_serve_floor(status->to_serve_floors, el->current_floor, el->inertia);
 
 	// If nobody's queuing, stay still
 	if(nearest_to_serve_floor==-1) {
