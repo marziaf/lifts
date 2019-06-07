@@ -68,7 +68,6 @@ int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor, char in
 		else nearest = found_at_u;
 	}
 
-	printf("THIS FUCKING elevator at floor %d wants to go to %d\n", this_floor, nearest); //DEBUG
 	// Signal intention to go to nearest floor, to avoid that multiple lifts are going there
 	floors_to_be_served[nearest] = 0;
 	return nearest;
@@ -104,7 +103,7 @@ void evaluate_inertia_change(status_t *status, int lift) {
 	if(floor == 0) elev->inertia = 'u';
 	else if(floor == FLOORS-1) elev->inertia = 'd';
 
-	// If there are not passengers, go to serve people in queue
+	// If there are not passengers, go to serve people in queue //TODO maybe someone else can do this job faster
 	if( elev->num_people_inside == 0) {
 		try_serve_ppl_queueing(status, lift);
 		return;
@@ -133,7 +132,7 @@ void evaluate_inertia_change(status_t *status, int lift) {
 
 
 // Move elevator of one floor, according to inertia
-void move_elevator(status_t *status, int lift) {
+void move_elevator(status_t *status, int lift) { //TODO non funziona bene se ci sono più di 12 persone
 	elevator_t *elevator = &status->elevators[lift];
 	if(elevator->inertia=='u') elevator->current_floor++;
 	else if(elevator->inertia=='d') elevator->current_floor--;
@@ -247,12 +246,12 @@ void print_inside_elevators(status_t *status) {
 		printf("%5d", f);
 		for(int e=0; e<NUM_ELEVATORS; ++e) {
 			int ppl_in_e_going_f = status->elevators[e].people_destinations[f];
-			if(ppl_in_e_going_f) printf("%-.*d", padding, ppl_in_e_going_f);
+			if(ppl_in_e_going_f) printf("%*d", padding, ppl_in_e_going_f);
 			else printf("%.*s", padding, "    -    ");
 		}
 		printf("\n");
 	}
-	printf("TOTAL");
+	printf("\nTOTAL");
 	for(int e=0; e<NUM_ELEVATORS; ++e) {
 		printf("%*d", padding, status->elevators[e].num_people_inside);
 	}

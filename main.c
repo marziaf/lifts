@@ -11,6 +11,7 @@ int main() {
 	char c = 'o';
 	c = getchar();
 
+	//TODO mettere un print del comando inserito e invio, magari, per vedere l'esecuzione step by step
 	int from, to;
 	while(c!='q') {
 		switch(c) {
@@ -31,5 +32,6 @@ int main() {
 		c = getchar();
 	}
 
+	//TODO free
 	return 0;
 }
