@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include "controller.h"
 #include "parameters.h"
-#include "queue.c"
+#include "queue.h"
 
-#define INIT_ELEVATOR_STATUS {{0}, 's', 0, EL_CAPACITY}
-#define INIT_STATUS {{}, {0}, {}} //TODO check if ok, otherwise use memset
+#define INIT_ELEVATOR_STATUS {{0}, 's', 0, 0}
+#define INIT_STATUS { NULL , {0}, NULL} //TODO check if ok, otherwise use memset
 
 
 // Initialize the status of the system
@@ -62,7 +62,7 @@ int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor) {
 
 
 // Check if it would be better to change inertia
-void evalutate_inertia_change(status_t *status, int lift) {
+void evaluate_inertia_change(status_t *status, int lift) {
 	elevator_t *elev = &status->elevators[lift];
 	// Current inertia
 	int inertia = elev->inertia;
@@ -153,7 +153,7 @@ void time_step(status_t *status) {
 	// For each elevator
 	for(int i=0; i<NUM_ELEVATORS; i++) {
 		// Decide which elevator goes where
-		evalutate_inertia_change(status, i);
+		evaluate_inertia_change(status, i);
 		// Move elevator of one floor (if necessary)
 		move_elevator(status, i);
 		// People who need to exit, get out
@@ -165,9 +165,9 @@ void time_step(status_t *status) {
 
 
 void print_queue(list_identifier_t *list_id) {
-	person_t *iterator = list_id->head->next;
-	while(iterator != list_id->tail) {
-		printf("{%2d} ", iterator->dest);
+	person_t *iterator = list_id->head;
+	while(iterator->next) {
+		printf("{%2d} ", iterator->next->dest);
 		iterator = iterator->next;
 	}
 }
@@ -218,9 +218,19 @@ void print_inside_elevators(status_t *status) {
 
 
 void print_system_status(status_t *status) {
-	printf("_____________________________");
+	printf("_____________________________\n");
 	printf("QUEUES STATUS\n\n");
 	print_floors(status);
 	printf("ELEVATORS STATUS\n\n");
 	print_inside_elevators(status);
+}
+
+
+//TODO remove DEBUG anche in header
+void test(status_t *status) {
+	elevator_t el = status->elevators[1];
+	elevator_t el0 = status->elevators[0];
+	printf("ascensore 1 ha inerzia %c, current_floor %d, num_people_inside %d, e %d persone vanno al piano 19\n", el.inertia, el.current_floor, el.num_people_inside, el.people_destinations[19]);
+	printf("ascensore 0 ha inerzia %c, current_floor %d, num_people_inside %d, e %d persone vanno al piano 19\n", el0.inertia, el0.current_floor, el0.num_people_inside, el0.people_destinations[19]);
+	printf("Al piano 19 la prima persona in coda vuole andare al piano %d", status->floors_queues[19].head->next->dest);
 }

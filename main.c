@@ -1,13 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "queue.h"
 #include "controller.h"
 
 int main() {
 	// TODO input file
 	// TODO qualcosa nei file andrebbe messo ad unsigned
+	status_t status = init_status();
+	
 	char c = 'o';
 	c = getchar();
-	status_t status = init_status();
 
 	int from, to;
 	while(c!='q') {
@@ -23,9 +25,13 @@ int main() {
 				time_step(&status);
 				break;
 			case 'p':
-				print_system_status(&status);
+				printf("queue at 19\n");
+				print_queue(&status.floors_queues[19]);
+				test(&status);
+				//print_system_status(&status);
 				break;
 		}
+		c = getchar();
 	}
 
 	return 0;
