@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
 	// START
 	// _______________________________________________________________________
 
-	while( fscanf(command_file, "%s", command) == 1 ) {
+	while( fscanf(command_file, "%s", command) == 1 ) { //TODO limit read to 32 char
 		// Arrivals
 		if( strcmp(command, ARRIVES) == 0 ) {
 			// Get customer departure and arrival floor
@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
 			time_step(&status);
 
 			if(verbose) {
-				printf("Time++\n");
+				printf("Time++\n"); //TODO in verbose, print too
 			}
 		}
 		// Print
