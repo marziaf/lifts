@@ -2,12 +2,10 @@
 #include "queue.h"
 #include "parameters.h"
 
-/** Creates a new person
- * @param dest: destination of customer
- * */
-person_t *new_person(int destination) { //TODO limit visibility
+// Creates a new person
+ person_t *new_person(int destination) {
 	// Allocate space
-	person_t *new_p = (person_t *) malloc(sizeof(person_t)); //TODO free
+	person_t *new_p = (person_t *) malloc(sizeof(person_t));
 	// Initialize person
 	new_p->dest = destination;
 	new_p->next = NULL;

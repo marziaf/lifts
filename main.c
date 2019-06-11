@@ -40,6 +40,7 @@ int main(int argc, char **argv) {
 	// Get context
 	status_t status = init_status();
 	
+
 	// _______________________________________________________________________
 	// START
 	// _______________________________________________________________________
@@ -72,8 +73,19 @@ int main(int argc, char **argv) {
 		if(verbose) getchar();  // Wait for user input to go on
 	}
 
+	
+	// _______________________________________________________________________
+	// EXIT
+	// _______________________________________________________________________
 	fclose(command_file);
 
-	//TODO free
+	// Free space
+	for(int f=0; f<FLOORS; ++f) {
+		list_identifier_t *queue = &status.floors_queues[f];
+		while(!is_empty(queue)) free(dequeue(queue));
+		free(queue->head);
+		free(queue->tail);
+	}
+
 	return 0;
 }
