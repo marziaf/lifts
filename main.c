@@ -24,6 +24,8 @@ int main(int argc, char **argv) {
 	FILE *command_file = fopen(argv[1], "r");
 
 	// Check if verbose option is activated
+	// Verbose mode: press enter to proceed to next instruction.
+	// Every time there's a time step, a print is performed too
 	char verbose = 0;
 	if( argc > 2 && strcmp(argv[2], VERBOSE) == 0 ) {
 		verbose = 1;
@@ -42,7 +44,7 @@ int main(int argc, char **argv) {
 	// START
 	// _______________________________________________________________________
 
-	while( fscanf(command_file, "%s", command) == 1 ) { //TODO limit read to 32 char
+	while( fscanf(command_file, "%32s", command) == 1 ) {
 		// Arrivals
 		if( strcmp(command, ARRIVES) == 0 ) {
 			// Get customer departure and arrival floor
@@ -59,6 +61,7 @@ int main(int argc, char **argv) {
 
 			if(verbose) {
 				printf("Time++\n"); //TODO in verbose, print too
+				print_system_status(&status);
 			}
 		}
 		// Print
