@@ -82,9 +82,12 @@ int main(int argc, char **argv) {
 	// Free space
 	for(int f=0; f<FLOORS; ++f) {
 		list_identifier_t *queue = &status.floors_queues[f];
-		while(!is_empty(queue)) free(dequeue(queue));
+		while(!is_empty(queue)) {
+			if(verbose) printf("Deleting a customer in %d\n", f);
+			free(dequeue(queue));
+		}
+		if(verbose) printf("Deleting head %d\n", f);
 		free(queue->head);
-		free(queue->tail);
 	}
 
 	return 0;
