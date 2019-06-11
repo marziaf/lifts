@@ -5,7 +5,7 @@
 #include "queue.h"
 
 #define INIT_ELEVATOR_STATUS {{0}, 's', 0, 0}
-#define INIT_STATUS { NULL , {0}, NULL} //TODO check if ok, otherwise use memset //TODO check null
+#define INIT_STATUS { NULL, {0}, NULL} //TODO check if ok, otherwise use memset //TODO check null
 #define SPACER printf("________________________\n");
 
 
@@ -13,16 +13,19 @@
 // INITIALIZATION
 //_____________________________________________________________________________________________
 
-// Initialize the status of the system
+
 status_t init_status() {
-	// Initialize empty status
+	// Initialize default status
 	status_t status = (status_t) INIT_STATUS;
+
 	// Initialize elevators
 	for(int i=0; i<NUM_ELEVATORS; i++)
 		status.elevators[i] = (elevator_t) INIT_ELEVATOR_STATUS;
+
 	// Initialize queues
 	for(int i=0; i<FLOORS; i++)
 		status.floors_queues[i] = init_queue();
+
 	return status;
 }
 
@@ -41,6 +44,7 @@ void add_customer(status_t *status, int from, int to) {
 // MOVEMENTS
 //_____________________________________________________________________________________________
 
+
 // Check were people are queuing
 void check_calls(status_t *status) {
 	// Check in which floors there are people
@@ -48,14 +52,14 @@ void check_calls(status_t *status) {
 		if( !is_empty( &(status->floors_queues[i]) ) )
 			status->to_serve_floors[i] = 1; // If there is someone, mark as to be visited
 		else
-			status->to_serve_floors[i] = 0;
+			status->to_serve_floors[i] = 0; // Otherwise set to 0
 	}
-	if(status->to_serve_floors[0] == 1) printf("Now there's someone at floor 0\n"); //DEBUG
 }
 
 
-// People who need to get down to current floor, get down
+// People who need to get out to current floor, exit
 void people_get_out(status_t *status, int lift) {
+
 	elevator_t *elevator = &status->elevators[lift];
 	// Get how many people are getting down
 	int people_leaving = elevator->people_destinations[elevator->current_floor];
@@ -66,21 +70,25 @@ void people_get_out(status_t *status, int lift) {
 }
 
 
-// Get the maximum number of customers
+// Get the maximum number of customers inside the lift
 void people_get_in(status_t *status, int lift) {
+
 	elevator_t *elev = &status->elevators[lift];
 	int this_floor = elev->current_floor;
 	// Calculate how many people can fit
 	int remaining_capacity = EL_CAPACITY - elev->num_people_inside;
 	// Get the queue in this floor
 	list_identifier_t *queue = &status->floors_queues[this_floor];
-	// Until there's space in elevator, and people in queue, let people get inside
+
+	// Until there's space in elevator and people in queue, let people get inside
 	int person_destination;
 	for(int i=0; i<remaining_capacity && !is_empty(queue); i++) {
 		// Insert person destination in elevator people tracker
 		person_t *to_insert = dequeue(queue);  // Get person and it's destination
 		person_destination = to_insert->dest;
+		// Free the dequeued person: by now only the destination is needed
 		free(to_insert);
+
 		// Update elevator params
 		elev->people_destinations[person_destination]++;
 		elev->num_people_inside++;
@@ -89,12 +97,12 @@ void people_get_in(status_t *status, int lift) {
 
 
 // Get the nearest busy floor to serve
-int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor, char inertia) {
+int get_nearest_to_serve_floor(char *floors_to_be_served, int this_floor, char inertia) {
 	// Get the nearest floor to be served going up or down
 	int found_at_d = -1;  // Nearest lower floor with people
 	int found_at_u = -1;  // And upper
 
-	// Search the nearest floor whith people queuing
+	// Search the nearest floor with people queuing
 	// ... looking the nearest down
 	for(int i=this_floor-1; (i>=0 && found_at_d==-1); --i)
 		if(floors_to_be_served[i])
@@ -104,24 +112,23 @@ int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor, char in
 		if(floors_to_be_served[i]) found_at_u = i;
 	
 	// If there were no busy floors, say there's nobody
-	if(found_at_u==-1 && found_at_d==-1) return -1;
+	if(found_at_u == -1 && found_at_d == -1) return -1;
 
 	int nearest;
 	// If there's nobody upstairs, nearest is down
-	if(found_at_u==-1) nearest = found_at_d;
+	if(found_at_u == -1) nearest = found_at_d;
 	// If there's nobody down, nearest is up
-	else if(found_at_d==-1) nearest = found_at_u;
+	else if(found_at_d == -1) nearest = found_at_u;
 	// If there's people up and down, go to nearest floor
 	else if(found_at_u-this_floor != this_floor-found_at_d)
 		nearest = (found_at_u-this_floor < this_floor-found_at_d) ? found_at_u : found_at_d;
 	// In case of parity, keep current inertia to avoid to get stuck
 	else {
 		if(inertia == 'd') nearest = found_at_d;
-		// 'Statistically'*, if the lift was stopped, it is better to go up, as people usually go
-		// from floor x to 0, and not to y>x. In this way, after collecting people were needed,
-		// the lift will start going down and collecting more people who are going down too
-		//
-		// *source: me, 2019
+		// If the lift was stopped, it is better to go up, as people usually go
+		// from floor x to 0, and not to y>x.
+		// In this way, after collecting people were needed, the lift will
+		// start going down and collecting more people who are going down too
 		else nearest = found_at_u;
 	}
 
@@ -129,15 +136,16 @@ int get_nearest_to_serve_floor(int *floors_to_be_served, int this_floor, char in
 }
 
 
+// If the lift is empty checks if there are floors to serve
+// and tries to go there
 void try_serve_ppl_queueing(status_t *status, int lift) {
+
 	elevator_t *el = &status->elevators[lift];
 	// Get the nearest floor with people queueing
 	int nearest_to_serve_floor = get_nearest_to_serve_floor(status->to_serve_floors, el->current_floor, el->inertia);
 
-	printf("Hey, I'm %d and I'm going to floor %d\n", lift, nearest_to_serve_floor);//DEBUG TODO
-
 	// If nobody's queuing, stay still
-	if(nearest_to_serve_floor==-1) {
+	if(nearest_to_serve_floor == -1) {
 		el->inertia = 's';
 		return;
 	}
@@ -146,24 +154,23 @@ void try_serve_ppl_queueing(status_t *status, int lift) {
 
 	// Signal intention to go to nearest floor, to avoid that multiple lifts are going there
 	status->to_serve_floors[nearest_to_serve_floor] = 0;
-	return;
-
 }
 
 
 // Check if it would be better to change inertia
 void evaluate_inertia_change(status_t *status, int lift) {
+
 	elevator_t *elev = &status->elevators[lift];
 	// Current inertia
 	int inertia = elev->inertia;
 	// Current floor
 	int floor = elev->current_floor;
 
-	// Check if elevator reached top or bottom (this inertia can change by the end of function)
+	// Check if elevator reached top or bottom (this inertia can change to 's' by the end of function)
 	if(floor == 0) elev->inertia = 'u';
 	else if(floor == FLOORS-1) elev->inertia = 'd';
 
-	// If there are not passengers, go to serve people in queue //TODO maybe someone else can do this job faster
+	// If there are not passengers, go to serve people in queue
 	if( elev->num_people_inside == 0) {
 		try_serve_ppl_queueing(status, lift);
 		return;
@@ -178,7 +185,6 @@ void evaluate_inertia_change(status_t *status, int lift) {
 			if (elev->people_destinations[i]!=0)
 				someone_goes_up=1;
 		if(!someone_goes_up) elev->inertia = 'd';
-
 	}
 	// The same in opposite direction
 	if(inertia == 'd') {
@@ -192,12 +198,11 @@ void evaluate_inertia_change(status_t *status, int lift) {
 
 
 // Move elevator of one floor, according to inertia
-void move_elevator(status_t *status, int lift) { //TODO non funziona bene se ci sono più di 12 persone
+void move_elevator(status_t *status, int lift) {
 	elevator_t *elevator = &status->elevators[lift];
 	if(elevator->inertia=='u') elevator->current_floor++;
 	else if(elevator->inertia=='d') elevator->current_floor--;
 }
-
 
 
 void time_step(status_t *status) {
@@ -209,7 +214,7 @@ void time_step(status_t *status) {
 		people_get_out(status, i);
 		// People get into the elevator
 		people_get_in(status, i);
-		// Decide which elevator goes where
+		// Decide where the elevator should direct to
 		evaluate_inertia_change(status, i);
 		// Move elevator of one floor (if necessary)
 		move_elevator(status, i);
