@@ -1,6 +1,9 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
+/** This file contains parameters shared between project's files
+ * */
+
 // Number of floors
 #define FLOORS 20
 // Elevator capacity
