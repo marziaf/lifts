@@ -6,7 +6,7 @@
 
 #define INIT_ELEVATOR_STATUS {{0}, 's', 0, 0}
 #define INIT_STATUS { NULL, {0}, NULL} //TODO check if ok, otherwise use memset //TODO check null
-#define SPACER printf("________________________\n");
+#define SPACER printf("________________________________________________________________________\n");
 
 
 //_____________________________________________________________________________________________
@@ -226,6 +226,36 @@ void time_step(status_t *status) {
 // PRINT
 //_____________________________________________________________________________________________
 
+
+// FLOOR |LIFT #0 |LIFT #1 |          ELEVATORS |QUEUES
+void print_head_table(int floor_spacer, int single_lift_spacer, int air_gap, int elevators_spacer) {
+	// Print head of table
+	// Inside elevators
+	printf("%.*s|", floor_spacer, "FLOOR      ");
+	for(int e=0; e<NUM_ELEVATORS; ++e) {
+		printf("%.*s%d |", single_lift_spacer-2, "LIFT #",e);
+	}
+	// Break
+	printf("%.*s", air_gap, "               ");
+	// From outside
+	printf("%.*s|%s\n", elevators_spacer, "ELEVATORS         ", "QUEUES");
+}
+
+
+// Print the elevators with their inertia
+// [ s]
+//      [ d]
+void print_lifts_outside(elevator_t *elevator, int floor) {
+	if(elevator->current_floor == floor) // If elevator i is at this floor
+		printf("[%2c] ", elevator->inertia);
+	else // Else leave blank space
+		printf("     ");
+}
+
+
+
+// Print the queue
+// { 3} { 19} { 4} { 4} {0}
 void print_queue(list_identifier_t *list_id) {
 	person_t *iterator = list_id->head;
 	while(iterator->next) {
@@ -235,71 +265,51 @@ void print_queue(list_identifier_t *list_id) {
 }
 
 
-void print_elevators(elevator_t *elevators, int floor) {
-	for(int i=0; i<NUM_ELEVATORS; i++) {
-		if(elevators[i].current_floor == floor) // If elevator i is at this floor
-			printf("[%2c] ", elevators[i].inertia);
-		else // Else leave blank space
-			printf("     ");
-	}
-}
 
-
-void print_floors(status_t *status) {
-	// Display people queuing at each floor and the lifts
-	// 19    | [ u]     [ s] | { 1} {19} { 3} <- floor example
-	int first_col_size = 6; //xx____
-	int elevator_space = NUM_ELEVATORS*5;// [xx]_
+void print_elevators_floors(status_t *status) {
+	// Formatting spaces
+	int floor_spacer = 6; //____xx
+	int single_lift_spacer = 8; //LIFT #0
+	int air_gap = 10;
+	int elevators_spacer = NUM_ELEVATORS*5;//[ s] [ s] 
 	
-	// Titles of table
-	printf("%.*s |%.*s |%s\n", first_col_size, "FLOOR", elevator_space, "ELEVATORS", "QUEUE");
-	// Print a line for each floor
-	for(int f=FLOORS-1; f>=0; --f) {
-		printf("%*d|",first_col_size, f); // Number of floor
-		print_elevators(status->elevators, f);
-		printf("| ");
-		print_queue(&status->floors_queues[f]);
-		printf("\n");
-	}
-}
+	// Print the legend
+	print_head_table(floor_spacer, single_lift_spacer, air_gap, elevators_spacer);
 
-
-void print_inside_elevators(status_t *status) {
-	// Print also the destinations of people inside elevators
-	//LIFT->LIFT #0 |LIFT #1 
-	//FLOOR 
-	//19    1           -
-	//...
-	int padding = 8;
-	printf("LIFT->");
-	for(int i=0; i<NUM_ELEVATORS; ++i) {
-		printf("LIFT #%-2d|",i);
-	}
-	printf("\nFLOOR \n");
 	for(int f=FLOORS-1; f>=0; --f) {
-		printf("%5d", f);
+		printf("%*d|", floor_spacer, f);
+		// Print the internal status of elevators
 		for(int e=0; e<NUM_ELEVATORS; ++e) {
 			int ppl_in_e_going_f = status->elevators[e].people_destinations[f];
-			if(ppl_in_e_going_f) printf("%*d", padding, ppl_in_e_going_f);
-			else printf("%.*s", padding, "    -    ");
+			if(ppl_in_e_going_f) printf("%*d|", single_lift_spacer, ppl_in_e_going_f);
+			else printf("%.*s|", single_lift_spacer, "    -    ");
 		}
+
+		// Break
+		printf("%.*s", air_gap, "              ");
+
+		// Print the elevators from outside
+		for(int e=0; e<NUM_ELEVATORS; ++e)
+			print_lifts_outside(&status->elevators[e], f);
+		printf("|");
+
+		// And the queue
+		print_queue(&status->floors_queues[f]);
+
 		printf("\n");
 	}
+
+	// print the total number of people inside the elevators
 	printf("\nTOTAL");
 	for(int e=0; e<NUM_ELEVATORS; ++e) {
-		printf("%*d", padding, status->elevators[e].num_people_inside);
+		printf("%*d", single_lift_spacer, status->elevators[e].num_people_inside);
 	}
 	printf("\n");
-}
 
+}
 
 void print_system_status(status_t *status) {
 	SPACER
-	printf("QUEUES' STATUS\n\n");
-	print_floors(status);
-	printf("\n\n");
-	SPACER
-	printf("ELEVATORS' STATUS\n\n");
-	print_inside_elevators(status);
+	print_elevators_floors(status);
 	SPACER
 }
