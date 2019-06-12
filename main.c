@@ -10,8 +10,7 @@
 #define VERBOSE "-v"
 
 int main(int argc, char **argv) {
-	// TODO qualcosa nei file andrebbe messo ad unsigned
-	
+
 	// _______________________________________________________________________
 	// SETUP
 	// _______________________________________________________________________
@@ -49,7 +48,12 @@ int main(int argc, char **argv) {
 		// Arrivals
 		if( strcmp(command, ARRIVES) == 0 ) {
 			// Get customer departure and arrival floor
-			fscanf(command_file, "%d %d", &from, &to);
+			int scanf_count = fscanf(command_file, "%d %d", &from, &to);
+			if(!scanf_count) { // Check errors in reading file
+				fprintf(stderr, "ERROR: couldn't get 'from' and 'to'. Assuming 0 & 1");
+				from = 0;
+				to = 1;
+			}
 			add_customer(&status, from, to);
 			
 			if(verbose) {
@@ -61,7 +65,7 @@ int main(int argc, char **argv) {
 			time_step(&status);
 
 			if(verbose) {
-				printf("Time++\n"); //TODO in verbose, print too
+				printf("Time++\n");
 				print_system_status(&status);
 			}
 		}

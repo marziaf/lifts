@@ -5,7 +5,7 @@
 #include "queue.h"
 
 #define INIT_ELEVATOR_STATUS {{0}, 's', 0, 0}
-#define INIT_STATUS { NULL, {0}, NULL} //TODO check if ok, otherwise use memset //TODO check null
+#define INIT_STATUS { NULL, {0}, NULL}
 #define SPACER printf("________________________________________________________________________\n");
 
 
