@@ -23,10 +23,10 @@ Some files can be found in `test/`. These tests are thought to be used in verbos
 
 #### Verbose mode
 `-v` option activates the verbose mode:
-- After each command is required user's input to continue, so that each command effect can be observed live
+- After each command is required user's input to continue, so that each command's effect can be observed live
 - Commands are repeated to user to keep track of what is happening
 - After each time step a print status is performed
-- When program terminates memory is freed while printing the deletion progress
+- When program terminates, memory is freed while printing the deletion progress
 
 #### Example
 ```
