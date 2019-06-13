@@ -52,7 +52,7 @@ void enqueue(list_identifier_t *list_id, int dest) {
 }
 
 
-person_t *dequeue(list_identifier_t *list_id) { //TODO check if head=tail	
+person_t *dequeue(list_identifier_t *list_id) {
 	// If list_id is not initialized, return NULL
 	if(check_queue_existence(list_id)) return NULL;
 

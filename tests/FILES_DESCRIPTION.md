@@ -26,4 +26,11 @@ Tests the behaviour when most of the customers are going to the same floor.
 
 `random_generator.py` creates random configurations of inputs
 
-Files generated in this way are named `random_genX`
+Files that have been generated in this way are named `random_genX`
+
+Example:
+
+```
+cd tests
+python3 random_generator.py > random_genY
+```

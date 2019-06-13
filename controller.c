@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "controller.h"
 #include "parameters.h"
 #include "queue.h"
 
 #define INIT_ELEVATOR_STATUS {{0}, 's', 0, 0}
-#define INIT_STATUS { NULL, {0}, NULL}
 #define SPACER printf("________________________________________________________________________\n");
 
 
@@ -16,7 +16,8 @@
 
 status_t init_status() {
 	// Initialize default status
-	status_t status = (status_t) INIT_STATUS;
+	status_t status;
+	memset(status.to_serve_floors, 0, FLOORS);
 
 	// Initialize elevators
 	for(int i=0; i<NUM_ELEVATORS; i++)
